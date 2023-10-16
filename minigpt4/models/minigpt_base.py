@@ -333,8 +333,8 @@ class MiniGPTBase(BaseModel):
             function for generate test use
         '''
 
-        stopping_criteria = StoppingCriteriaList([StoppingCriteriaSub(
-            stops=[torch.tensor([i]).to(self.device) for i in stop_words_ids])])
+        # stopping_criteria = StoppingCriteriaList([StoppingCriteriaSub(
+        #     stops=[torch.tensor([i]).to(self.device) for i in stop_words_ids])])
 
         img_embeds, atts_img = self.encode_img(images.to(self.device))
         image_lists = [[image_emb[None]] for image_emb in img_embeds]
