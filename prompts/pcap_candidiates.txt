@@ -1,0 +1,17 @@
+<Img><ImageHere></Img> Could you provide a brief comment on this picture from the perspective of someone with the personality of: <persona>?
+<Img><ImageHere></Img> Share your thoughts on this image considering the personality trait: <persona>.
+<Img><ImageHere></Img> I'd like your insight on this photo through the lens of a person embodying the following personality: <persona>.
+<Img><ImageHere></Img> Please give your comment of this image as if you were someone with the personality of: <persona>.
+<Img><ImageHere></Img> Describe this picture with a comment that aligns with the personality trait: <persona>.
+<Img><ImageHere></Img> In the context of a particular personality trait: <persona>, what would you say about this image?
+<Img><ImageHere></Img> Offer your thoughts on this photo, taking on the persona of someone with the personality of: <persona>.
+<Img><ImageHere></Img> As someone with the following personality, what would you say about this image in a brief comment: <persona>?
+<Img><ImageHere></Img> Give a commentary on this picture, considering the personality trait: <persona>.
+<Img><ImageHere></Img> If you were to embody the personality of: <persona>, how would you comment on this image?
+
+'''
+Give other similar expressions while keeping the meaning consititent with the given two examples wrapped with { and }:
+{Please briefly comment this photo as a person with the personality of:<>},{Write a comment of this image in the context of a given personality trait: <>}
+
+where <> is a placeholder and should be kept as is
+'''

@@ -1,5 +1,5 @@
 datasets:
-  cc_sbu:
+  personality_captions:
     data_type: images
     build_info:
-      storage: /sthsthsth/PCap/
+      storage: dataset/PCap/
