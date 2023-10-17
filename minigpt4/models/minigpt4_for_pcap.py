@@ -19,6 +19,8 @@ class MiniGPT4ForPCap(MiniGPT4):
     PRETRAINED_MODEL_CONFIG_DICT = {
         "pretrain_vicuna0": "configs/models/minigpt4_vicuna0.yaml",
         "pretrain_llama2": "configs/models/minigpt4_llama2.yaml",
+        "pretrain_vicuna0_pcap": "configs/models/minigpt4_vicuna0_pcap.yaml",
+        "pretrain_llama2_pcap": "configs/models/minigpt4_llama2_pcap.yaml",
     }
 
     '''
@@ -50,7 +52,7 @@ class MiniGPT4ForPCap(MiniGPT4):
         persona_token:str="<persona>",
         **kwargs
     ):
-        super.__init__(vit_model=vit_model,
+        super().__init__(vit_model=vit_model,
         q_former_model=q_former_model,
         img_size=img_size,
         drop_path_rate=drop_path_rate,
@@ -91,8 +93,28 @@ class MiniGPT4ForPCap(MiniGPT4):
             inst_persona[idx] = inst_persona[idx].replace(self.persona_token, persona)
         
         cond_embeds, cond_atts = self.prompt_wrap(img_embeds, img_atts, inst_persona)
+        ### prepare target tokens
+        self.llama_tokenizer.padding_side = "right"
+        text = [t + self.end_sym for t in samples["answer"]]
 
-        return cond_embeds, cond_atts
+        regress_tokens = self.llama_tokenizer(
+            text,
+            return_tensors="pt",
+            padding="longest",
+            truncation=True,
+            max_length=self.max_txt_len,
+            add_special_tokens=False
+        ).to(self.device)
+
+        regress_token_ids = regress_tokens.input_ids
+        regress_atts = regress_tokens.attention_mask
+        part_targets = regress_token_ids.masked_fill(
+            regress_token_ids == self.llama_tokenizer.pad_token_id, -100
+        )
+
+        regress_embeds = self.embed_tokens(regress_token_ids)
+
+        return cond_embeds, cond_atts, regress_embeds, regress_atts, part_targets
 
     @classmethod
     def from_config(cls, cfg):

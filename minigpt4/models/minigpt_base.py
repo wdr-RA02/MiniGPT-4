@@ -301,7 +301,7 @@ class MiniGPTBase(BaseModel):
                 attention_mask=attention_mask,
                 return_dict=True,
                 labels=targets,
-                reduction=reduction
+                # reduction=reduction
             )
         loss = outputs.loss
 
