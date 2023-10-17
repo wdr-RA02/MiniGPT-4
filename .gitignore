@@ -3,3 +3,4 @@ output/
 .vscode/
 
 dataset/PCap
+minigpt4/output
