@@ -5,7 +5,7 @@ model:
   end_sym: "###"
   low_resource: True
   prompt_template: '###Human: {} ###Assistant: '
-  ckpt: 'please set this value to the path of pretrained checkpoint'
+  ckpt: "minigpt4/output/minigpt4_pcap_linear/20231017141/checkpoint_4.pth"
 
 
 datasets:
