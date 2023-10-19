@@ -1,0 +1,25 @@
+model:
+  arch: minigpt4
+  model_type: pretrain_vicuna0
+  max_txt_len: 160
+  end_sym: "###"
+  low_resource: True
+  prompt_template: '###Human: {} ###Assistant: '
+  ckpt: "minigpt4/output/minigpt4_pcap_linear/20231017141/checkpoint_4.pth"
+  # added for metric eval
+  eval_batch_size: 4
+  eval_num_workers: 4 
+  prompt: "Write a comment of this image in the context of a given personality trait: <persona>."
+
+datasets:
+  cc_sbu_align:
+    vis_processor:
+      train:
+        name: "blip2_image_eval"
+        image_size: 224
+    text_processor:
+      train:
+        name: "blip_caption"
+
+run:
+  task: image_text_pretrain

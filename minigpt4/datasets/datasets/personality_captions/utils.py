@@ -68,7 +68,7 @@ def img_hash_to_addr(src_dataset, img_addr, img_name_fmt):
     }
     '''
     if "images" in src_dataset.keys():
-        return
+        return src_dataset
     # 坑1: src_dataset is a dict, not dataset
     # 坑2: 使用dataloader加载的时候index是单个, 而不是一般想象中的batch
 

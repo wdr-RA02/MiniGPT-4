@@ -14,9 +14,13 @@ from minigpt4.conversation.cli_infer import (MiniGPT4_CLIGenerator as BaseCLIGen
                                              StoppingCriteriaSub)
 from minigpt4.datasets.datasets.personality_captions.utils import img_hash_to_addr
 
+from tests.eval_pcap import eval_model, collate_batch
+from tqdm import tqdm
+from functools import partial
+
 from PIL import Image, ImageFile
 ImageFile.LOAD_TRUNCATED_IMAGES = True
-from typing import List, Union, Dict
+from typing import List, Union
 
 
 def parse_args():
@@ -70,6 +74,9 @@ model = model_cls.from_config(model_config).to('cuda:{}'.format(args.gpu_id))
 vis_processor_cfg = cfg.datasets_cfg.cc_sbu_align.vis_processor.train
 vis_processor = registry.get_processor_class(vis_processor_cfg.name).from_config(vis_processor_cfg)
 
+txt_processor_cfg = cfg.datasets_cfg.cc_sbu_align.text_processor.train
+txt_processor = registry.get_processor_class(txt_processor_cfg.name).from_config(txt_processor_cfg)
+
 stop_words_ids = [[835], [2277, 29937], [29937]]
 stop_words_ids = [torch.tensor(ids).to(device='cuda:{}'.format(args.gpu_id)) for ids in stop_words_ids]
 stopping_criteria = StoppingCriteriaList([StoppingCriteriaSub(stops=stop_words_ids)])
@@ -80,10 +87,11 @@ print('Initialization Finished')
 class CLIGeneratorForPCap(BaseCLIGen):
     def __init__(self, model, vis_processor, 
                  instruction:str, 
+                 debug: bool=False,
                  persona_token:str = "<persona>",
                  device='cuda:0', stopping_criteria=None):
         super().__init__(model, vis_processor, 
-                         instruction, device, stopping_criteria)
+                         instruction, device, debug,stopping_criteria)
         self.persona_token = persona_token
     
     def insert_persona(self, 
@@ -106,9 +114,8 @@ class CLIGeneratorForPCap(BaseCLIGen):
                            for prompt, persona in zip(prompts, personalities)]
         
         return prompts_persona
-    
-if __name__=="__main__":
-    '''your code here'''
+
+def test_gen():
     prompt = "Write a comment of this image in the context of a given personality trait: <persona>."
 
     instruction = instruction_dict[model_config.model_type]
@@ -131,3 +138,19 @@ if __name__=="__main__":
                                                       max_length=50)
     
     print(output_text)
+
+
+if __name__=="__main__":
+    '''your code here'''
+    instruction = instruction_dict[model_config.model_type]
+    # instruction = "###Human: {} ###Assistant:"
+    generator = CLIGeneratorForPCap(model, vis_processor, instruction=instruction, 
+                             device='cuda:{}'.format(args.gpu_id), stopping_criteria=stopping_criteria)
+    
+    eval_json = "dataset/PCap/personality_captions/test.json"
+    image_path = "dataset/PCap/yfcc_images"
+
+    collate_batch = partial(collate_batch, txt_processor=txt_processor)
+    result = eval_model(generator, model_config, eval_json, image_path, collate_fn=collate_batch)
+
+    print(result)

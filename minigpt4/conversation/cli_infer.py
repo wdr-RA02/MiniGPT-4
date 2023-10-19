@@ -1,7 +1,7 @@
 import torch
 from typing import List, Optional, Union
 
-from transformers import StoppingCriteriaList
+from transformers import StoppingCriteriaList, GenerationConfig
 from minigpt4.conversation.conversation import StoppingCriteriaSub
 
 # imports modules for registration
@@ -19,12 +19,15 @@ class MiniGPT4_CLIGenerator(object):
     def __init__(self, model, vis_processor, 
                  instruction:str,  
                  device='cuda:0', 
+                 debug: bool=False,
                  stopping_criteria=None):
         
         self.device = device
         self.model = model
         self.instruction = instruction
         self.vis_processor = vis_processor
+
+        self.debug=debug
 
         if stopping_criteria is not None:
             self.stopping_criteria = stopping_criteria
@@ -75,9 +78,9 @@ class MiniGPT4_CLIGenerator(object):
             for i, seg in enumerate(zip(each_prompt))
             ] for each_prompt in prompt_segs
         ]
-
-        print('debug device: ', self.device)
-        print('debug model device: ', self.model.device)
+        if self.debug:
+            print('debug device: ', self.device)
+            print('debug model device: ', self.model.device)
 
         # print(image_emb[:,0:1].shape)
         seg_embs = [[self.model.embed_tokens(seg_t) for seg_t in seg_token] for seg_token in seg_tokens]
@@ -141,11 +144,13 @@ class MiniGPT4_CLIGenerator(object):
         input_embeds_list = self.get_context_emb(prompts, img_embed)
         # input_emb_list = [e_batch0, ..., e_batchn]
         inputs_embeds, attn_mask = self.left_padding(input_embeds_list)
-        print(prompts[0])
+        
+        if self.debug:
+            print(prompts[0])
         
         # generate kwargs
-        generation_kwargs=dict(
-            max_length=max_length,
+        gen_cfg=dict(
+            max_new_tokens=max_length,
             stopping_criteria=self.stopping_criteria,
             num_beams=num_beams,
             do_sample=do_sample,
@@ -159,7 +164,7 @@ class MiniGPT4_CLIGenerator(object):
         with self.model.maybe_autocast():
             output_token = self.model.llama_model.generate(inputs_embeds=inputs_embeds,
                                                         attention_mask=attn_mask,
-                                                        **generation_kwargs)
+                                                        **gen_cfg)
             output_texts = self.model.llama_tokenizer.batch_decode(output_token, skip_special_tokens=True)
 
         return output_token, self.post_processing(output_texts)
