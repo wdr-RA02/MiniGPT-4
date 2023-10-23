@@ -1,15 +1,15 @@
 model:
-  arch: minigpt4
-  model_type: pretrain_vicuna0
+  arch: minigpt4_for_pcap
+  model_type: pretrain_vicuna0_pcap
   max_txt_len: 160
   end_sym: "###"
   low_resource: True
   prompt_template: '###Human: {} ###Assistant: '
-  ckpt: "minigpt4/output/minigpt4_pcap_linear/20231017141/checkpoint_4.pth"
+  ckpt: "minigpt4/output/minigpt4_pcap_linear/20231023045/checkpoint_4.pth"
   # added for metric eval
-  eval_batch_size: 4
-  eval_num_workers: 4 
-  prompt: "Write a comment of this image in the context of a given personality trait: <persona>."
+  eval_batch_size: 36
+  eval_num_workers: 6
+  prompt: "Please briefly comment this photo as a person with the personality of: <persona>."
 
 datasets:
   cc_sbu_align:

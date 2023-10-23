@@ -6,7 +6,7 @@ model:
   end_sym: "###"
   prompt_path: "prompts/pcap.txt"
   prompt_template: '###Human: {} ###Assistant: '
-  ckpt: '../minigpt4_misc/pretrained_minigpt4_7b.pth'
+  ckpt: '../datas/minigpt4_misc/pretrained_minigpt4_7b.pth'
 
 
 datasets:

@@ -15,7 +15,7 @@ model:
   # generation configs
   prompt: ""
 
-  llama_model: "/home/mas-xie.haojie/codes_gzp/minigpt4_misc/vicuna-7b/"
+  llama_model: "/home/mas-xie.haojie/codes_gzp/datas/Vicuna-7B_hf/"
 
 preprocess:
     vis_processor:
