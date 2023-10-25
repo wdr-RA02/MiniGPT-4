@@ -98,6 +98,7 @@ class MiniGPT4ForPCap(MiniGPT4):
                 bias="none",
                 task_type="CAUSAL_LM",
                 target_modules=lora_target_modules,
+                lora_dropout=0.05,
                 **lora_kargs
             )
             self.llama_model = get_peft_model(self.llama_model, loraconfig)
