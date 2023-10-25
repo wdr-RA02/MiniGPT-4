@@ -8,6 +8,9 @@ model:
   prompt_template: '###Human: {} ###Assistant: '
   ckpt: '../datas/minigpt4_misc/pretrained_minigpt4_7b.pth'
 
+  lora_r: 64
+  lora_alpha: 16.0
+
 
 datasets:
   personality_captions:
@@ -29,7 +32,7 @@ run:
   warmup_lr: 1e-6
 
   weight_decay: 0.05
-  max_epoch: 5
+  max_epoch: 3
   # 186800/batch/gpus
   iters_per_epoch: 15567
   batch_size_train: 4
@@ -38,7 +41,7 @@ run:
   warmup_steps: 1000
 
   seed: 42
-  output_dir: "output/minigpt4_pcap_linear"
+  output_dir: "output/minigpt4_pcap_linear_lora"
 
   amp: True
   resume_ckpt_path: null

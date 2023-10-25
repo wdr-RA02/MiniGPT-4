@@ -10,12 +10,18 @@ from minigpt4.models.base_model import disabled_train
 from minigpt4.models.minigpt_base import MiniGPTBase
 from minigpt4.models.Qformer import BertConfig, BertLMHeadModel
 from minigpt4.models.minigpt4 import MiniGPT4
+from peft import (
+    LoraConfig,
+    get_peft_model,
+    prepare_model_for_int8_training,
+)
 
 BLIP_PT_PATH = "https://storage.googleapis.com/sfr-vision-language-research/LAVIS/models/BLIP2/blip2_pretrained_flant5xxl.pth"
 
 
 @registry.register_model("minigpt4_for_pcap")
 class MiniGPT4ForPCap(MiniGPT4):
+
     PRETRAINED_MODEL_CONFIG_DICT = {
         "pretrain_vicuna0": "configs/models/minigpt4_vicuna0.yaml",
         "pretrain_llama2": "configs/models/minigpt4_llama2.yaml",
@@ -50,6 +56,9 @@ class MiniGPT4ForPCap(MiniGPT4):
         low_resource=False,  # use 8 bit and put vit in cpu
         device_8bit=0,  # the device of 8bit model should be set when loading and cannot be changed anymore.
         persona_token:str="<persona>",
+        # add lora
+        lora_r=0,
+        lora_alpha=16,
         **kwargs
     ):
         super().__init__(vit_model=vit_model,
@@ -70,7 +79,35 @@ class MiniGPT4ForPCap(MiniGPT4):
         low_resource=low_resource,  # use 8 bit and put vit in cpu
         device_8bit=device_8bit)
 
-        self.persona_token = kwargs.get("persona_token", "<persona>")
+        self.persona_token = persona_token
+        self.lora_r = lora_r
+        self.lora_alpha = lora_alpha
+
+        # load lora
+        self.init_lora()
+
+    # copied from base_model.py
+    def init_lora(self, lora_target_modules=["q_proj","v_proj"], **lora_kargs):
+        if self.lora_r > 0:
+            logging.info("Init Lora, rank={}, alpha={}, modules={}".format(self.lora_r,
+                                                                           self.lora_alpha,
+                                                                           lora_target_modules))
+            self.llama_model = prepare_model_for_int8_training(self.llama_model)
+            loraconfig = LoraConfig(
+                r=self.lora_r,
+                bias="none",
+                task_type="CAUSAL_LM",
+                target_modules=lora_target_modules,
+                **lora_kargs
+            )
+            self.llama_model = get_peft_model(self.llama_model, loraconfig)
+
+            self.llama_model.print_trainable_parameters()
+            logging.info('Init Lora Done')
+        else:
+            for name, param in self.llama_model.named_parameters():
+                param.requires_grad = False
+    
 
     def preparing_embedding(self, samples):
         ### prepare input tokens
@@ -137,6 +174,8 @@ class MiniGPT4ForPCap(MiniGPT4):
         prompt_template = cfg.get("prompt_template", "")
         max_txt_len = cfg.get("max_txt_len", 32)
         end_sym = cfg.get("end_sym", '\n')
+        lora_r = cfg.get("lora_r", 0)
+        lora_alpha = cfg.get("lora_alpha", 16)
 
         # add
         persona_token = cfg.get("persona_token", "<persona>")
@@ -161,6 +200,8 @@ class MiniGPT4ForPCap(MiniGPT4):
             device_8bit=device_8bit,
             # add
             persona_token=persona_token,
+            lora_r=lora_r,
+            lora_alpha=lora_alpha
         )
 
         ckpt_path = cfg.get("ckpt", "")  # load weights of MiniGPT-4
