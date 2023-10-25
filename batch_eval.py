@@ -63,6 +63,11 @@ instruction_dict = {
         "You will be able to see the image once I provide it to you. Please answer my questions. "
         "<s>[INST] {} [/INST] "
 }
+# add _pcap as suffix
+dict_keys = list(instruction_dict.keys())
+for key in dict_keys:
+    instruction_dict["{}_pcap".format(key)] = instruction_dict[key]
+
 args = parse_args()
 cfg = Config(args)
 
@@ -114,30 +119,6 @@ class CLIGeneratorForPCap(BaseCLIGen):
                            for prompt, persona in zip(prompts, personalities)]
         
         return prompts_persona
-
-def test_gen():
-    prompt = "Write a comment of this image in the context of a given personality trait: <persona>."
-
-    instruction = instruction_dict[model_config.model_type]
-    # instruction = "###Human: {} ###Assistant:"
-    generator = CLIGeneratorForPCap(model, vis_processor, instruction=instruction, 
-                             device='cuda:{}'.format(args.gpu_id), stopping_criteria=stopping_criteria)
-    import json
-    with open("tests/inference_src.json", "r") as f:
-        examples = json.load(f)
-    
-    # convert record to set
-    keys = list(examples[0].keys())
-    examples={k: [x[k] for x in examples] for k in keys}
-    examples_out=img_hash_to_addr(examples, "dataset/PCap/yfcc_images/","{}.jpg")
-
-    prompts = generator.insert_persona(prompt, examples_out["personality"])
-    output, output_text = generator.generate_response(prompts, 
-                                                      examples_out["images"],
-                                                      do_sample=False,
-                                                      max_length=50)
-    
-    print(output_text)
 
 
 if __name__=="__main__":
